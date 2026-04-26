@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SEPM Unit 4 – Software Construction</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap');
+
+  :root {
+    --bg: #0a0f0a;
+    --surface: #101810;
+    --card: #161e16;
+    --border: #253025;
+    --accent: #4dff91;
+    --accent2: #ff7043;
+    --accent3: #64b5f6;
+    --text: #e0ede0;
+    --muted: #7a9a7a;
+    --tag-bg: #141e14;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    line-height: 1.7;
+    padding: 0 16px 80px;
+  }
+
+  .hero {
+    background: linear-gradient(135deg, #0a2a0a 0%, #0a1a2a 50%, #2a1a0a 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 48px 24px 36px;
+    margin: 0 -16px 40px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(77,255,145,0.12) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .hero-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    display: block;
+  }
+  .hero h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(28px, 6vw, 48px);
+    font-weight: 800;
+    line-height: 1.1;
+    color: #fff;
+    margin-bottom: 12px;
+  }
+  .hero h1 span { color: var(--accent); }
+  .hero p { color: var(--muted); font-size: 14px; max-width: 480px; }
+
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 32px;
+  }
+  .toc-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  .toc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 8px;
+  }
+  .toc-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    background: var(--tag-bg);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    text-decoration: none;
+    color: var(--text);
+    font-size: 13px;
+    transition: all 0.2s;
+  }
+  .toc-item:hover { border-color: var(--accent); color: var(--accent); }
+  .toc-num { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--accent); min-width: 20px; }
+
+  section { margin-bottom: 36px; scroll-margin-top: 20px; }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    background: rgba(77,255,145,0.08);
+    border: 1px solid rgba(77,255,145,0.25);
+    border-radius: 6px;
+    padding: 3px 8px;
+    white-space: nowrap;
+  }
+  .section-header h2 { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700; color: #fff; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 14px;
+    transition: border-color 0.2s;
+  }
+  .card:hover { border-color: rgba(77,255,145,0.25); }
+
+  .card-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-title::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .card h4 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 14px; color: var(--accent2); margin: 12px 0 6px; }
+
+  ul { padding-left: 0; list-style: none; }
+  ul li {
+    padding: 4px 0 4px 18px;
+    position: relative;
+    color: var(--text);
+    font-size: 14px;
+  }
+  ul li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--muted);
+    font-size: 12px;
+    top: 6px;
+  }
+
+  .grid-2 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+
+  .highlight-box {
+    background: rgba(77,255,145,0.06);
+    border: 1px solid rgba(77,255,145,0.2);
+    border-left: 3px solid var(--accent);
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-bottom: 14px;
+    font-size: 14px;
+  }
+  .highlight-box strong { color: var(--accent); }
+
+  .orange-box {
+    background: rgba(255,112,67,0.07);
+    border: 1px solid rgba(255,112,67,0.2);
+    border-left: 3px solid var(--accent2);
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-bottom: 14px;
+    font-size: 14px;
+  }
+  .orange-box strong { color: var(--accent2); }
+
+  .blue-box {
+    background: rgba(100,181,246,0.06);
+    border: 1px solid rgba(100,181,246,0.2);
+    border-left: 3px solid var(--accent3);
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-bottom: 14px;
+    font-size: 14px;
+  }
+  .blue-box strong { color: var(--accent3); }
+
+  .compare-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+  .compare-col { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .compare-col.left { border-top: 2px solid var(--accent); }
+  .compare-col.right { border-top: 2px solid var(--accent2); }
+  .compare-col h4 { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; margin-bottom: 10px; }
+  .compare-col.left h4 { color: var(--accent); }
+  .compare-col.right h4 { color: var(--accent2); }
+
+  .principle-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+    align-items: flex-start;
+  }
+  .principle-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    background: rgba(77,255,145,0.08);
+    border: 1px solid rgba(77,255,145,0.2);
+    border-radius: 4px;
+    padding: 2px 7px;
+    white-space: nowrap;
+    margin-top: 2px;
+    flex-shrink: 0;
+  }
+  .principle-text { font-size: 14px; }
+  .principle-text strong { color: var(--accent3); }
+
+  .spiral-box {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 14px;
+    text-align: center;
+  }
+  .spiral-layers {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-width: 400px;
+    margin: 16px auto 0;
+  }
+  .spiral-layer {
+    border-radius: 6px;
+    padding: 8px 14px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .l1 { background: rgba(77,255,145,0.15); border: 1px solid rgba(77,255,145,0.3); color: var(--accent); }
+  .l2 { background: rgba(100,181,246,0.12); border: 1px solid rgba(100,181,246,0.25); color: var(--accent3); }
+  .l3 { background: rgba(255,112,67,0.12); border: 1px solid rgba(255,112,67,0.25); color: var(--accent2); }
+  .l4 { background: rgba(200,200,200,0.08); border: 1px solid rgba(200,200,200,0.15); color: #ccc; }
+
+  .review-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .review-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .review-card.informal { border-top: 2px solid var(--accent3); }
+  .review-card.formal { border-top: 2px solid var(--accent2); }
+  .review-card h4 { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; margin-bottom: 8px; }
+  .review-card.informal h4 { color: var(--accent3); }
+  .review-card.formal h4 { color: var(--accent2); }
+  .review-card p { font-size: 13px; color: var(--muted); }
+
+  .tag {
+    display: inline-block;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin: 2px;
+  }
+  .tag-green { background: rgba(77,255,145,0.1); color: var(--accent); border: 1px solid rgba(77,255,145,0.25); }
+  .tag-orange { background: rgba(255,112,67,0.1); color: var(--accent2); border: 1px solid rgba(255,112,67,0.25); }
+  .tag-blue { background: rgba(100,181,246,0.1); color: var(--accent3); border: 1px solid rgba(100,181,246,0.25); }
+
+  .exam-tip {
+    background: rgba(255,220,100,0.07);
+    border: 1px solid rgba(255,220,100,0.2);
+    border-left: 3px solid #ffd464;
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin-top: 14px;
+    font-size: 13px;
+  }
+  .exam-tip strong { color: #ffd464; }
+
+  .formula-box {
+    background: rgba(77,255,145,0.05);
+    border: 1px solid rgba(77,255,145,0.2);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin: 10px 0;
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    color: var(--accent);
+    text-align: center;
+  }
+
+  p { font-size: 14px; color: var(--text); margin-bottom: 8px; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <span class="hero-tag">21CSC303J · Unit 4</span>
+  <h1>Software <span>Construction</span></h1>
+  <p>Coding standards, reviews, testing strategies, black-box & white-box testing, and debugging — in plain English.</p>
+</div>
+
+<div class="toc">
+  <div class="toc-title">Contents</div>
+  <div class="toc-grid">
+    <a class="toc-item" href="#s1"><span class="toc-num">01</span> Coding Standards</a>
+    <a class="toc-item" href="#s2"><span class="toc-num">02</span> Software Reviews</a>
+    <a class="toc-item" href="#s3"><span class="toc-num">03</span> Testing Strategy</a>
+    <a class="toc-item" href="#s4"><span class="toc-num">04</span> Unit Testing</a>
+    <a class="toc-item" href="#s5"><span class="toc-num">05</span> Integration Testing</a>
+    <a class="toc-item" href="#s6"><span class="toc-num">06</span> Validation & System Testing</a>
+    <a class="toc-item" href="#s7"><span class="toc-num">07</span> Black Box Testing</a>
+    <a class="toc-item" href="#s8"><span class="toc-num">08</span> White Box Testing</a>
+    <a class="toc-item" href="#s9"><span class="toc-num">09</span> Debugging</a>
+    <a class="toc-item" href="#s10"><span class="toc-num">10</span> Other Testing Types</a>
+  </div>
+</div>
+
+<!-- SECTION 1 -->
+<section id="s1">
+  <div class="section-header">
+    <span class="section-num">01</span>
+    <h2>Coding Standards</h2>
+  </div>
+
+  <div class="highlight-box">
+    <strong>In one line:</strong> Coding standards = agreed rules on how code should be written so it looks the same no matter who wrote it.
+  </div>
+
+  <div class="card">
+    <div class="card-title">What are Coding Standards?</div>
+    <p>A defined style of writing code that every developer in an organization must follow. Code that doesn't follow these standards gets rejected during code review.</p>
+    <h4>Why They Matter</h4>
+    <ul>
+      <li>Makes all code look uniform — doesn't matter who wrote it</li>
+      <li>Improves readability and maintainability</li>
+      <li>Reduces complexity and helps detect errors early</li>
+      <li>Encourages code reuse</li>
+      <li>Makes programmers more efficient overall</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Common Coding Standard Rules</div>
+    <ul>
+      <li><strong>Limited use of globals</strong> — avoid using global variables unless necessary</li>
+      <li><strong>Standard headers</strong> — each module/file must have a standard header comment block</li>
+      <li><strong>Naming conventions</strong> — fixed rules for naming variables, constants, functions (e.g. camelCase, UPPER_CASE for constants)</li>
+      <li><strong>Indentation</strong> — consistent spacing/tabs to show code structure</li>
+      <li><strong>Error handling</strong> — standard way to return error values and handle exceptions</li>
+    </ul>
+  </div>
+</section>
+
+<!-- SECTION 2 -->
+<section id="s2">
+  <div class="section-header">
+    <span class="section-num">02</span>
+    <h2>Software Reviews</h2>
+  </div>
+
+  <div class="highlight-box">
+    <strong>In one line:</strong> Reviews = humans manually checking code/documents before testing even starts, to catch errors early and cheaply.
+  </div>
+
+  <div class="card">
+    <div class="card-title">What is a Software Review?</div>
+    <p>A systematic inspection of software by one or more people to find and fix errors early in the development process. Done manually. Can review requirements, designs, code, test plans, etc.</p>
+    <h4>Objectives</h4>
+    <ul>
+      <li>Improve team productivity</li>
+      <li>Make testing cheaper and faster (fewer bugs reach testing)</li>
+      <li>Deliver software with fewer defects</li>
+      <li>Remove problems before they become expensive</li>
+    </ul>
+  </div>
+
+  <div class="review-grid">
+    <div class="review-card informal">
+      <h4>1. Desk Check</h4>
+      <p>Developer traces through their own code line-by-line on paper or screen — simulating how the program runs mentally. Very early, done before even compiling.</p>
+    </div>
+    <div class="review-card informal">
+      <h4>2. Walkthrough</h4>
+      <p>Author reads the code aloud to the team. Others note defects and suggestions. Informal — no management involved. Started by the code's author.</p>
+    </div>
+    <div class="review-card informal">
+      <h4>3. Code Review (Technical Review)</h4>
+      <p>Peers (not management) review the code for defects. Less formal than inspection. Focus is on quality assurance. Varies from informal to semi-formal.</p>
+    </div>
+    <div class="review-card formal">
+      <h4>4. Inspection</h4>
+      <p>Most formal type. Led by a trained moderator. Reviewers study the document BEFORE the meeting. Formal follow-up is done. Most effective at finding defects.</p>
+    </div>
+  </div>
+
+  <div class="compare-row">
+    <div class="compare-col left">
+      <h4>Informal Reviews</h4>
+      <ul>
+        <li>Desk Check — solo, no meeting</li>
+        <li>Walkthrough — author-led, team present</li>
+        <li>No strict process</li>
+        <li>No formal authority</li>
+      </ul>
+    </div>
+    <div class="compare-col right">
+      <h4>Formal Reviews</h4>
+      <ul>
+        <li>Inspection — trained moderator leads</li>
+        <li>Docs reviewed BEFORE meeting</li>
+        <li>Formal process with follow-up</li>
+        <li>Most thorough and effective</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="exam-tip">
+    <strong>⚡ Exam tip:</strong> Remember the order of formality: Desk Check (least formal) → Walkthrough → Code Review → Inspection (most formal). The key difference: Inspection uses a trained moderator and pre-meeting preparation.
+  </div>
+</section>
+
+<!-- SECTION 3 -->
+<section id="s3">
+  <div class="section-header">
+    <span class="section-num">03</span>
+    <h2>Testing Strategy</h2>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Key distinction:</strong> Testing = finding errors. Debugging = fixing them. They are different activities. Testing can account for up to <strong>40% of total project cost</strong>.
+  </div>
+
+  <div class="card">
+    <div class="card-title">Verification vs Validation</div>
+    <div class="compare-row">
+      <div class="compare-col left">
+        <h4>Verification</h4>
+        <p style="font-size:13px;">Are we building the product <em>right</em>?</p>
+        <p style="font-size:13px;color:var(--muted);">Checks that the software correctly implements a specific function.</p>
+      </div>
+      <div class="compare-col right">
+        <h4>Validation</h4>
+        <p style="font-size:13px;">Are we building the <em>right</em> product?</p>
+        <p style="font-size:13px;color:var(--muted);">Checks that the software actually meets what the customer wanted.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">The 4-Level Testing Spiral (Inside → Outside)</div>
+    <p>Testing starts with small individual pieces and grows outward to the full system.</p>
+    <div class="spiral-layers">
+      <div class="spiral-layer l1">① Unit Testing — test each individual module/function</div>
+      <div class="spiral-layer l2">② Integration Testing — test modules combined together</div>
+      <div class="spiral-layer l3">③ Validation Testing — test against customer requirements</div>
+      <div class="spiral-layer l4">④ System Testing — test the full system including hardware</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Characteristics of a Good Testing Strategy</div>
+    <ul>
+      <li>Uses Formal Technical Reviews (FTR) — catch errors before testing</li>
+      <li>Starts at component level, moves to full system</li>
+      <li>Different techniques used at different stages</li>
+      <li>Done by both the developer AND an independent test group</li>
+      <li>Must include debugging as part of the process</li>
+    </ul>
+  </div>
+</section>
+
+<!-- SECTION 4 -->
+<section id="s4">
+  <div class="section-header">
+    <span class="section-num">04</span>
+    <h2>Unit Testing</h2>
+  </div>
+
+  <div class="highlight-box">
+    <strong>In one line:</strong> Test each small piece (function/module) of software individually — in isolation from the rest.
+  </div>
+
+  <div class="card">
+    <div class="card-title">What Unit Testing Checks</div>
+    <ul>
+      <li><strong>Interface</strong> — does data flow in and out of the module correctly?</li>
+      <li><strong>Local data structures</strong> — are variables stored and used correctly?</li>
+      <li><strong>Boundary conditions</strong> — does it handle edge cases (min, max, zero)?</li>
+      <li><strong>Independent paths</strong> — does every logical path through the code get tested?</li>
+      <li><strong>Error handling paths</strong> — does it handle errors gracefully?</li>
+    </ul>
+    <div class="orange-box" style="margin-top:12px;">
+      <strong>Key fact:</strong> Software almost always fails at its boundaries. Always do boundary testing.
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Unit Test Environment — Driver & Stubs</div>
+    <p>When you test a module, it may call other modules that aren't ready yet. So you use:</p>
+    <ul>
+      <li><strong>Driver</strong> — a fake "caller" that feeds test inputs to the module being tested</li>
+      <li><strong>Stub</strong> — a fake version of a module that the tested module calls (returns dummy data)</li>
+    </ul>
+    <div class="blue-box" style="margin-top:10px;">
+      <strong>Think of it as:</strong> Driver = boss giving work. Stub = fake employee doing nothing but returning "ok".
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 5 -->
+<section id="s5">
+  <div class="section-header">
+    <span class="section-num">05</span>
+    <h2>Integration Testing</h2>
+  </div>
+
+  <div class="highlight-box">
+    <strong>In one line:</strong> Individual modules work fine alone — but do they work when connected together? Integration testing finds interface errors between modules.
+  </div>
+
+  <div class="card">
+    <div class="card-title">3 Integration Strategies</div>
+    <div class="principle-row">
+      <span class="principle-num">Top-Down</span>
+      <span class="principle-text">Start from the top module (main control). Test it using <strong>stubs</strong> for lower modules. Replace stubs one by one as you go deeper. Good for testing high-level logic early.</span>
+    </div>
+    <div class="principle-row">
+      <span class="principle-num">Bottom-Up</span>
+      <span class="principle-text">Start from the lowest modules (no dependencies). Group them into clusters. Use <strong>drivers</strong> to test them. Combine clusters upward. Good for testing utility/low-level functions early.</span>
+    </div>
+    <div class="principle-row">
+      <span class="principle-num">Sandwich</span>
+      <span class="principle-text">Combination: Top-down for high-level modules + Bottom-up for low-level modules. Best of both worlds. Most practical for large systems.</span>
+    </div>
+  </div>
+
+  <div class="exam-tip">
+    <strong>⚡ Exam tip:</strong> Top-down uses stubs. Bottom-up uses drivers. Sandwich uses both. This is a very common exam question.
+  </div>
+</section>
+
+<!-- SECTION 6 -->
+<section id="s6">
+  <div class="section-header">
+    <span class="section-num">06</span>
+    <h2>Validation & System Testing</h2>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Validation Testing</div>
+    <p>Tests whether the software meets what the customer actually asked for (SRS document). High-level tests against functional and behavioural requirements.</p>
+    <div class="grid-2">
+      <div>
+        <h4>Alpha Testing</h4>
+        <ul>
+          <li>Done at the developer's site</li>
+          <li>End users use the software in a controlled environment</li>
+          <li>Developer observes and records errors</li>
+        </ul>
+      </div>
+      <div>
+        <h4>Beta Testing</h4>
+        <ul>
+          <li>Done at the customer's site — real-world conditions</li>
+          <li>Environment is NOT controlled</li>
+          <li>Users record problems and report to developer</li>
+          <li>Developer fixes and releases final product</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">System Testing — 4 Types</div>
+    <div class="principle-row">
+      <span class="principle-num">1</span>
+      <span class="principle-text"><strong>Recovery Testing</strong> — Forces the system to fail and checks if it recovers correctly within an acceptable time. Evaluates <strong>MTTR</strong> (Mean Time To Repair).</span>
+    </div>
+    <div class="principle-row">
+      <span class="principle-num">2</span>
+      <span class="principle-text"><strong>Security Testing</strong> — Tester plays the role of a hacker trying to break in. Checks that the system resists unauthorized access. Goal: make penetration cost more than the value of the data.</span>
+    </div>
+    <div class="principle-row">
+      <span class="principle-num">3</span>
+      <span class="principle-text"><strong>Stress Testing</strong> — Runs the system with abnormal amounts of data, requests, or load. Tests robustness — how does it behave under extreme conditions?</span>
+    </div>
+    <div class="principle-row">
+      <span class="principle-num">4</span>
+      <span class="principle-text"><strong>Performance Testing</strong> — Tests runtime performance within an integrated system. Measures speed, throughput, response time. Requires both hardware and software instrumentation.</span>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 7 -->
+<section id="s7">
+  <div class="section-header">
+    <span class="section-num">07</span>
+    <h2>Black Box Testing</h2>
+  </div>
+
+  <div class="highlight-box">
+    <strong>In one line:</strong> You don't care about the code inside. You only check: given this input, do I get the right output?
+  </div>
+
+  <div class="compare-row">
+    <div class="compare-col left">
+      <h4>⬛ Black Box</h4>
+      <ul>
+        <li>Also called behavioural testing</li>
+        <li>Tests what the system does (functions)</li>
+        <li>No knowledge of internal code needed</li>
+        <li>Done in later stages of testing</li>
+        <li>Finds: missing functions, wrong outputs, interface errors, database errors</li>
+      </ul>
+    </div>
+    <div class="compare-col right">
+      <h4>🔲 White Box</h4>
+      <ul>
+        <li>Also called glass box testing</li>
+        <li>Tests how the system works internally</li>
+        <li>Needs full knowledge of code structure</li>
+        <li>Done in earlier stages of testing</li>
+        <li>Finds: logic errors, missed paths, bad data handling</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Black Box Testing Methods</div>
+
+    <h4>1. Graph-Based Testing</h4>
+    <p>Create a graph of important objects and their relationships. Design test cases that "cover" every node and link in the graph. Every object and relationship must be tested at least once.</p>
+
+    <h4>2. Equivalence Partitioning</h4>
+    <p>Divide all possible inputs into groups (classes). Pick one test case from each class. Classes have valid and invalid ranges.</p>
+    <div class="blue-box">
+      <strong>Example:</strong> Input range is 1–10.<br>
+      Valid class: 1 ≤ n ≤ 10 → test with n=5<br>
+      Invalid class 1: n &lt; 1 → test with n=0<br>
+      Invalid class 2: n &gt; 10 → test with n=11
+    </div>
+
+    <h4>3. Boundary Value Analysis</h4>
+    <p>Test values at the edges of equivalence classes, not just the middle. Software almost always fails at boundaries.</p>
+    <div class="blue-box">
+      <strong>Example:</strong> If 0.0 ≤ x ≤ 1.0<br>
+      Valid: 0.0 and 1.0<br>
+      Invalid: -0.1 and 1.1
+    </div>
+
+    <h4>4. Orthogonal Array Testing</h4>
+    <p>Used when there are multiple input parameters each with multiple values. Instead of testing ALL combinations (which is too many), it selects a smart subset that still covers all pairs.</p>
+    <div class="blue-box">
+      <strong>Example:</strong> 3 inputs (A, B, C), each with 3 values = 27 possible test cases. Orthogonal array reduces this to just 9 test cases.
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 8 -->
+<section id="s8">
+  <div class="section-header">
+    <span class="section-num">08</span>
+    <h2>White Box Testing</h2>
+  </div>
+
+  <div class="highlight-box">
+    <strong>In one line:</strong> You look inside the code. Your goal is to make sure every path through the code gets executed at least once.
+  </div>
+
+  <div class="card">
+    <div class="card-title">Technique 1: Basis Path Testing</div>
+    <p>Proposed by Tom McCabe. Guarantees every statement in the program is executed at least once.</p>
+    <h4>Steps:</h4>
+    <div class="principle-row"><span class="principle-num">1</span><span class="principle-text">Draw a <strong>flow graph</strong> from the program's flowchart.</span></div>
+    <div class="principle-row"><span class="principle-num">2</span><span class="principle-text">Calculate <strong>Cyclomatic Complexity V(G)</strong> — this tells you how many independent paths exist.</span></div>
+    <div class="principle-row"><span class="principle-num">3</span><span class="principle-text">Identify the <strong>independent paths</strong> (as many as V(G) says).</span></div>
+    <div class="principle-row"><span class="principle-num">4</span><span class="principle-text">Create <strong>test cases</strong> that force each path to execute.</span></div>
+
+    <h4>Cyclomatic Complexity Formula</h4>
+    <div class="formula-box">V(G) = E − N + 2</div>
+    <p>Where <strong>E</strong> = number of edges, <strong>N</strong> = number of nodes in the flow graph.</p>
+    <div class="orange-box" style="margin-top:10px;">
+      <strong>Key insight:</strong> Higher V(G) = higher chance of errors. Modules with very high V(G) need extra attention during testing.
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Technique 2: Control Structure Testing</div>
+
+    <h4>a) Condition Testing</h4>
+    <p>Tests every logical condition (if, while, boolean expressions) in a module for both true and false outcomes. Catches: operator errors, variable errors, logic errors.</p>
+
+    <h4>b) Data Flow Testing</h4>
+    <p>Tracks where variables are <strong>defined</strong> (assigned a value) and where they are <strong>used</strong>. Creates a definition-use graph and ensures every definition-use (DU) chain is tested at least once.</p>
+    <ul>
+      <li><strong>DEF</strong> = variable on the left side of an assignment (e.g. x = 5)</li>
+      <li><strong>USE</strong> = variable being read or used (e.g. y = x + 1)</li>
+    </ul>
+
+    <h4>c) Loop Testing</h4>
+    <p>Focuses specifically on whether loops work correctly. Four types of loops:</p>
+    <div class="grid-2">
+      <ul>
+        <li><strong>Simple loops</strong> — one loop, test boundaries</li>
+        <li><strong>Nested loops</strong> — loops inside loops</li>
+        <li><strong>Concatenated loops</strong> — loops one after another</li>
+        <li><strong>Unstructured loops</strong> — complex/irregular loop structure</li>
+      </ul>
+    </div>
+    <h4>Simple Loop — Test Cases (n = max passes):</h4>
+    <ul>
+      <li>Skip the loop entirely (0 passes)</li>
+      <li>Only 1 pass through the loop</li>
+      <li>2 passes through the loop</li>
+      <li>m passes where m &lt; n (some middle value)</li>
+      <li>n-1, n, and n+1 passes (boundary values of the loop)</li>
+    </ul>
+    <h4>Nested Loop Strategy:</h4>
+    <ul>
+      <li>Start at the innermost loop, hold outer loops at minimum</li>
+      <li>Test inner loop fully, then move outward one level at a time</li>
+    </ul>
+  </div>
+
+  <div class="exam-tip">
+    <strong>⚡ Exam tip:</strong> V(G) = E - N + 2 is a formula you MUST memorize. Also know that V(G) = number of independent paths = minimum number of test cases needed for basis path testing.
+  </div>
+</section>
+
+<!-- SECTION 9 -->
+<section id="s9">
+  <div class="section-header">
+    <span class="section-num">09</span>
+    <h2>Debugging</h2>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Remember:</strong> Testing finds errors. Debugging finds the CAUSE of errors and fixes them. These are different activities.
+  </div>
+
+  <div class="card">
+    <div class="card-title">Why Debugging is Hard</div>
+    <ul>
+      <li>The symptom (where you see the error) and the cause (where it actually is) can be in completely different places</li>
+      <li>A symptom may disappear when you fix something else</li>
+      <li>The cause might be a combination of things that are individually correct</li>
+      <li>The symptom might appear only sometimes (intermittent bugs)</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <div class="card-title">3 Debugging Strategies</div>
+    <div class="principle-row">
+      <span class="principle-num">1</span>
+      <span class="principle-text"><strong>Brute Force</strong> — Dump memory, add print statements everywhere, trace everything. Most common but least efficient. Last resort. Wastes time and effort.</span>
+    </div>
+    <div class="principle-row">
+      <span class="principle-num">2</span>
+      <span class="principle-text"><strong>Back Tracking</strong> — Start from where the error appears and trace the code backwards to find where it went wrong. Useful for small programs.</span>
+    </div>
+    <div class="principle-row">
+      <span class="principle-num">3</span>
+      <span class="principle-text"><strong>Cause Elimination</strong> — List all possible causes. Devise a hypothesis for the most likely cause. Test it. Eliminate causes one by one using binary partitioning (halve the search space each time).</span>
+    </div>
+
+    <h4>Two Possible Outcomes of Debugging</h4>
+    <ul>
+      <li>Cause found and corrected ✅</li>
+      <li>Cause NOT found ❌ (back to square one)</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <div class="card-title">After Finding the Bug — Ask These 3 Questions</div>
+    <div class="principle-row"><span class="principle-num">Q1</span><span class="principle-text">Is the same bug pattern repeated elsewhere in the program?</span></div>
+    <div class="principle-row"><span class="principle-num">Q2</span><span class="principle-text">What new bug might my fix accidentally introduce?</span></div>
+    <div class="principle-row"><span class="principle-num">Q3</span><span class="principle-text">How could we have prevented this bug in the first place? (Fix the process, not just the code)</span></div>
+  </div>
+</section>
+
+<!-- SECTION 10 -->
+<section id="s10">
+  <div class="section-header">
+    <span class="section-num">10</span>
+    <h2>Other Testing Types</h2>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Regression Testing</div>
+    <p>When you fix a bug or add a feature, you re-run old tests to make sure you didn't break something that was working before.</p>
+    <ul>
+      <li>Re-executes a subset of previously passed tests</li>
+      <li>Ensures changes don't introduce unintended side effects</li>
+      <li>Can be done manually or with automation tools</li>
+    </ul>
+    <div class="orange-box" style="margin-top:10px;">
+      <strong>When to run it:</strong> Any time code is changed — bug fix, new feature, refactoring.
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Smoke Testing</div>
+    <p>A quick sanity check — does the build even work at the most basic level? Used for "daily builds" in product development.</p>
+    <ul>
+      <li>Components are integrated into a "build"</li>
+      <li>A small set of tests check that the build doesn't crash or fail fundamentally</li>
+      <li>Uncovers "show stopper" errors early</li>
+      <li>The entire product is smoke tested daily</li>
+      <li>Integration approach can be top-down or bottom-up</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Comparison Testing</div>
+    <p>Used when software reliability is critical (e.g., aircraft systems, medical devices).</p>
+    <ul>
+      <li>Multiple separate teams independently build the same software from the same spec</li>
+      <li>All versions are tested with the same inputs</li>
+      <li>Outputs are compared — they must all match</li>
+      <li>All versions run in parallel and results are compared in real-time</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Model-Based Testing</div>
+    <p>Uses a behavioral model (like a state diagram) to derive test cases automatically.</p>
+    <div class="principle-row"><span class="principle-num">1</span><span class="principle-text">Analyze an existing behavioral model or create one (e.g., state machine).</span></div>
+    <div class="principle-row"><span class="principle-num">2</span><span class="principle-text">Traverse the model — identify inputs that cause state transitions.</span></div>
+    <div class="principle-row"><span class="principle-num">3</span><span class="principle-text">Note expected outputs at each state transition.</span></div>
+    <div class="principle-row"><span class="principle-num">4</span><span class="principle-text">Execute the test cases.</span></div>
+    <div class="principle-row"><span class="principle-num">5</span><span class="principle-text">Compare actual vs expected results and fix any differences.</span></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Object-Oriented Testing</div>
+    <ul>
+      <li>Starts by checking correctness of analysis and design models</li>
+      <li>The "unit" is broader — it's an entire class (not just one function)</li>
+      <li>Integration focuses on classes executing together across a thread or use scenario</li>
+      <li>Validation uses conventional black box methods</li>
+    </ul>
+  </div>
+
+  <div class="exam-tip">
+    <strong>⚡ Final Exam Checklist for Unit 4:</strong> Know all 4 review types and their formality levels. Know the 4-level testing spiral. Know Black Box methods (Equivalence Partitioning, Boundary Value — with examples). Know White Box methods (Basis Path — V(G) formula, Loop Testing). Know 3 debugging strategies. Know the difference between Regression and Smoke testing.
+  </div>
+</section>
+
+</body>
+</html>
